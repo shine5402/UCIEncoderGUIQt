@@ -10,6 +10,7 @@
 #include <QFileInfo>
 #include "../LeafETestSystemAnswerer/leaflogger.h"
 #include <exception>
+#include <QRandomGenerator>
 class PictureHandler : public QObject
 {
     Q_OBJECT
@@ -33,8 +34,11 @@ private:
     QStringList otherArgument;
     qint32 doTurnProcess(const QString &programDir, const QString &programFileName, const QString &filePath, const QString &newSuffix, const QStringList &otherArgument= QStringList(), const QString &nativeArguments = "");
     void StartTurn2UCI(const QString &filePath, const qreal CRF, const UCIMode mode, const QStringList &otherArgument = QStringList());
+    void logAndCommandAndStatus(const QString message);
+
 signals:
     void addTempFile(const QString filePath);
+    void addNeedRenamePaths(const QString oldFilePath,const QString newFilePath);
     void FinishAPicture();
     void showStatusMessage(const QString message);
     void addCommandMessage(const QString message);
@@ -52,6 +56,7 @@ public:
         connect(pictures.value(pictures.count()-1),SIGNAL(FinishAPicture()),this,SLOT(addPictureFinished()));
         connect(pictures.value(pictures.count()-1),SIGNAL(showStatusMessage(QString)),this,SIGNAL(showStatusMessage(QString)));
         connect(pictures.value(pictures.count()-1),SIGNAL(addCommandMessage(QString)),this,SIGNAL(addCommandMessage(QString)));
+        connect(pictures.value(pictures.count()-1),SIGNAL(addNeedRenamePaths(QString,QString)),this,SLOT(addNeedRenamePaths(QString,QString)));
     }
     void runAll(){
         foreach (auto i, pictures) {
@@ -64,20 +69,33 @@ public:
     }
 
 private:
-    void doClean(){
-        deleteTempFiles();
+    void cleanClass()
+    {
         pictures.clear();
         pictureFinished = 0;
         prm->clear();
         tempFilePaths.clear();
+        needRenamePaths.clear();
+    }
+
+    void doFinish(){
+        deleteTempFiles();
+        doRename();
+        cleanClass();
     }
     ProcessManager* prm = new ProcessManager(this);
     QList<PictureHandler*> pictures;
     QStringList tempFilePaths;
     qint32 pictureFinished = 0;
+    QList<QPair<QString,QString>> needRenamePaths;
+    void doRename();
+    void logAndCommandAndStatus(const QString message);
 private slots:
     void addTempFile(const QString filePath){
         tempFilePaths.append(filePath);
+    }
+    void addNeedRenamePaths(const QString oldFilePath,const QString newFilePath){
+        needRenamePaths.append(QPair<QString,QString>(oldFilePath,newFilePath));
     }
     void deleteTempFiles();
     void addPictureFinished(){
@@ -85,12 +103,14 @@ private slots:
             return;
         else
         {
-            doClean();
+            doFinish();
             AllFinished();
         }
     }
+    //TODO:重命名添加了随机数的文件
 signals:
     void tempFileUnremoved(const QStringList unRemovedFiles);
+    void fileUnrenamed(const QList<QPair<QString,QString>> unRenamedFiles);
     void AllFinished();
     void showStatusMessage(const QString message);
     void addCommandMessage(const QString message);

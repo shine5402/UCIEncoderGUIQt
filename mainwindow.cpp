@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->statusBar->showMessage(u8"就绪");
     connect(magickhelper,SIGNAL(showStatusMessage(QString)),this,SLOT(showStatusMessage(QString)));
     setDockSize(ui->dockWidget,600,150);
+    ui->showAdvancedButton->setVisible(false);
 }
 
 MainWindow::~MainWindow()
@@ -156,6 +157,16 @@ void MainWindow::showUnremovedTempFiles(const QStringList unRemovedFiles)
     MessageBox::warning(this,message);
 }
 
+void MainWindow::showUnrenamedTempFiles(const QList<QPair<QString,QString>> unRenamedFiles)
+{
+    QString message;
+    message.append(u8"<h3>程序无法重命名某些文件……</h3>") .append( u8"<p>请您手动重命名他们。</p>").append(u8"<p>以下是文件列表：</p>");
+    foreach (auto i, unRenamedFiles) {
+        message.append(QString(u8"<p>%1 -> %2</p>").arg(i.first).arg(i.second));
+    }
+    MessageBox::warning(this,message);
+}
+
 void MainWindow::addCommandOutput(const int ProcessID,const QString output)
 {
     ui->commandOuptutBrowser->insertPlainText(QString(u8"来自程序运行器ID %1 的输出：").arg(ProcessID));
@@ -178,6 +189,7 @@ void MainWindow::addCommandError(const int ProcessID,const QString error)
 void MainWindow::addCommandMessage(const QString message)
 {
     ui->commandOuptutBrowser->insertPlainText(message);
+    ui->commandOuptutBrowser->insertHtml("<p><br/></p>");
 }
 
 void MainWindow::disableNewTasks(){

@@ -1,7 +1,7 @@
 ﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#define VERSION_STRING "0.1.0"
+#define VERSION_STRING "0.1.1"
 
 #include <QMainWindow>
 #include <QListWidget>
@@ -39,6 +39,7 @@ public slots:
     void progressDone();
     void showStatusMessage(const QString message);
     void showUnremovedTempFiles(const QStringList unRemovedFiles);
+    void showUnrenamedTempFiles(const QList<QPair<QString, QString> > unRenamedFiles);
 
     void addCommandOutput(const int ProcessID, const QString output);
     void addCommandError(const int ProcessID, const QString error);

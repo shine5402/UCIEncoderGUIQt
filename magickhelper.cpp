@@ -37,45 +37,78 @@ qint32 PictureHandler::doTurnProcess(const QString& programDir,const QString &pr
     argument << QDir::toNativeSeparators(filePath) << otherArgument;
 
     if (newSuffix == ".bmp"){
-        bmpPath = QDir::toNativeSeparators(QString(QDir::toNativeSeparators(QFileInfo(filePath).canonicalPath()).append("/")).append(QFileInfo(filePath).completeBaseName()).append(newSuffix));
+        auto baseName = QDir::toNativeSeparators(QString(QDir::toNativeSeparators(QFileInfo(filePath).canonicalPath()).append("/")).append(QFileInfo(filePath).completeBaseName()));
+        bmpPath = baseName + newSuffix;
+        if (QFileInfo(bmpPath).exists()){
+            QString newBaseName;
+            while (QFileInfo(bmpPath).exists()){
+                newBaseName =baseName + QString("%1").arg(QRandomGenerator::global()->generate());
+                bmpPath = newBaseName + newSuffix;
+            }
+            addNeedRenamePaths(newBaseName + ".uci",baseName + ".uci");
+        }
+
         addTempFile(bmpPath);
         argument << bmpPath;
     }
     return prm->runNewProcess(program,argument,nativeArguments);
 }
+void PictureHandler::logAndCommandAndStatus(const QString message)
+{
+    logger.LogMessage(message);
+    addCommandMessage(message);
+    showStatusMessage(message);
+}
+
 void PictureHandler::turn2BMP_processFinished(int exitCode, QProcess::ExitStatus exitStatus){
     if (exitStatus == QProcess::NormalExit){
-        logger.LogMessage(QString(u8"对文件 %1 的BMP转换进程调用完成。").arg(filePath));
-        addCommandMessage(QString(u8"对文件 %1 的BMP转换进程调用完成。").arg(filePath));
-        logger.LogMessage(QString(u8"对文件 %1 的UCI转换进程调用开始。").arg(filePath));
-        addCommandMessage(QString(u8"对文件 %1 的UCI转换进程调用开始。").arg(filePath));
+        logAndCommandAndStatus(QString(u8"对文件 %1 的BMP转换进程调用完成。").arg(filePath));
+        logAndCommandAndStatus(QString(u8"对文件 %1 的UCI转换进程调用开始。").arg(filePath));
         StartTurn2UCI(bmpPath,CRF,mode,otherArgument);
     } else{
-        logger.LogMessage(QString(u8"对文件 %1 的BMP转换进程出现错误。exitCode为 %2").arg(filePath).arg(exitCode));
-        addCommandMessage(QString(u8"对文件 %1 的BMP转换进程出现错误。exitCode为 %2").arg(filePath).arg(exitCode));
+        logAndCommandAndStatus(QString(u8"对文件 %1 的BMP转换进程出现错误。exitCode为 %2").arg(filePath).arg(exitCode));
     }
 
 }
 void PictureHandler::turn2UCI_processFinished(int exitCode, QProcess::ExitStatus exitStatus){
     if (exitStatus == QProcess::NormalExit){
-        logger.LogMessage(QString(u8"对文件 %1 的UCI转换进程调用完成。").arg(filePath));
-        addCommandMessage(QString(u8"对文件 %1 的UCI转换进程调用完成。").arg(filePath));
+        logAndCommandAndStatus(QString(u8"对文件 %1 的UCI转换进程调用完成。").arg(filePath));
         FinishAPicture();
     } else{
-        logger.LogMessage(QString(u8"对文件 %1 的UCI转换进程出现错误。exitCode为 %2").arg(filePath).arg(exitCode));
-        addCommandMessage(QString(u8"对文件 %1 的UCI转换进程出现错误。exitCode为 %2").arg(filePath).arg(exitCode));
+        logAndCommandAndStatus(QString(u8"对文件 %1 的UCI转换进程出现错误。exitCode为 %2").arg(filePath).arg(exitCode));
     }
+}
+
+void MagickHelper::doRename()
+{
+    QList<QPair<QString,QString>> unrenamed;
+    foreach (auto filePath, needRenamePaths) {
+        logAndCommandAndStatus(QString(u8"正在重命名文件%1 -> %2").arg(filePath.first).arg(filePath.second));
+        if (!QFile(filePath.first).rename(filePath.second))
+            unrenamed.append(filePath);
+        else
+           logAndCommandAndStatus(QString(u8"重命名文件%1 -> %2完成").arg(filePath.first).arg(filePath.second));
+    }
+    if (unrenamed.count() != 0)
+        fileUnrenamed(unrenamed);
+}
+
+void MagickHelper::logAndCommandAndStatus(const QString message)
+{
+    logger.LogMessage(message);
+    addCommandMessage(message);
+    showStatusMessage(message);
 }
 
 void MagickHelper::deleteTempFiles(){
     QStringList unRemoved;
     foreach (auto i, tempFilePaths) {
         QFile file(i);
-        showStatusMessage(QString(u8"正在删除临时文件%1").arg(i));
+        logAndCommandAndStatus(QString(u8"正在删除临时文件%1").arg(i));
         if (!file.remove())
             unRemoved << i;
         else
-            showStatusMessage(QString(u8"临时文件%1已删除").arg(i));
+            logAndCommandAndStatus(QString(u8"临时文件%1已删除").arg(i));
     }
     if (unRemoved.count() != 0){
         tempFileUnremoved(unRemoved);
