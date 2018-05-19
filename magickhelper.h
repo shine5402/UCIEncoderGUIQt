@@ -107,7 +107,6 @@ private slots:
             AllFinished();
         }
     }
-    //TODO:重命名添加了随机数的文件
 signals:
     void tempFileUnremoved(const QStringList unRemovedFiles);
     void fileUnrenamed(const QList<QPair<QString,QString>> unRenamedFiles);

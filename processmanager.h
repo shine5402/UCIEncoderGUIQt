@@ -11,9 +11,6 @@ class process :public QObject
 {
     Q_OBJECT
 public:
-//        process(QObject* parent):QObject(parent){
-//           processPtr = nullptr;
-//        }
     explicit process(QObject* parent,const int ID,QProcess* processPtr):QObject(parent),processPtr(processPtr),ID(ID) {
     }
     explicit process(QObject* parent,const int ID, const QString& program, const QStringList& argument, const QString &nativeArguments = "");

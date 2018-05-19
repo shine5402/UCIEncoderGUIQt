@@ -10,7 +10,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(magickhelper->getProcessManager(),SIGNAL(refreshProgress(int)),this,SLOT(refreshUIProgress(int)));
     connect(magickhelper,SIGNAL(AllFinished()),this,SLOT(progressDone()));
     connect(magickhelper,SIGNAL(tempFileUnremoved(QStringList)),this,SLOT(showUnremovedTempFiles(QStringList)));
-    connect(magickhelper->getProcessManager(),SIGNAL(processErrorAvailable(int,QString)),this,SLOT(addCommandError(int,QString)));
+    //此处为了迎合UCI Encoder的输出策略，Err也输出为Output
+    connect(magickhelper->getProcessManager(),SIGNAL(processErrorAvailable(int,QString)),this,SLOT(addCommandOutput(int,QString)));
     connect(magickhelper->getProcessManager(),SIGNAL(processOutputAvailable(int,QString)),this,SLOT(addCommandOutput(int,QString)));
     ui->statusBar->showMessage(u8"就绪");
     connect(magickhelper,SIGNAL(showStatusMessage(QString)),this,SLOT(showStatusMessage(QString)));
