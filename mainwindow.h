@@ -1,7 +1,7 @@
 ﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#define VERSION_STRING "0.1.1"
+#define VERSION_STRING "0.1.2"
 
 #include <QMainWindow>
 #include <QListWidget>
@@ -20,6 +20,10 @@
 #include <QTextBrowser>
 #include <QTextDocument>
 #include <QTimer>
+#include <QBoxLayout>
+#include <QRegExp>
+#include <QRegExpValidator>
+#include <QInputDialog>
 namespace Ui {
     class MainWindow;
 }
@@ -69,6 +73,29 @@ private slots:
  void on_actionAbout_triggered();
 
 
+ void on_showAdvancedButton_clicked();
+
+ void on_CRFBox_valueChanged(double arg1);
+
+ void on_QcheckBox_stateChanged(int arg1);
+
+ void on_xCheckBox_stateChanged(int arg1);
+
+ void on_XCheckBox_stateChanged(int arg1);
+
+ void on_pCheckBox_stateChanged(int arg1);
+
+ void on_i420CheckBox_stateChanged(int arg1);
+
+
+ void on_i420wLineEdit_textChanged(const QString &arg1);
+
+ void on_xPushButton_clicked();
+
+ void on_XPushButton_clicked();
+
+ void on_i444CheckBox_stateChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -90,6 +117,12 @@ private:
     void disableNewTasks();
     void enableNewTasks();
     void setDockSize(QDockWidget *dock, int setWidth, int setHeight);
+    void hideAdvanced();
+    void showAdvanced();
+    QString xString;
+    QString XString;
+    bool isAdvancedModified();
+    QString getAdvancedNativeArguments();
 };
 
 namespace MessageBox{

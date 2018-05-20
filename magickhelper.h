@@ -16,7 +16,7 @@ class PictureHandler : public QObject
     Q_OBJECT
 public:
     enum class UCIMode{avc,hevc};
-    explicit PictureHandler(QObject* parent,ProcessManager* processManagerPtr,const QString &filePath, const qreal CRF, const UCIMode mode, const QStringList &otherArgument = QStringList()):QObject(parent),filePath(filePath),prm(processManagerPtr),CRF(CRF),mode(mode),otherArgument(otherArgument) {}
+    explicit PictureHandler(QObject* parent,ProcessManager* processManagerPtr,const QString &filePath, const qreal CRF, const UCIMode mode, const QStringList &otherArgument = QStringList(),const QString& UCINativeArguments = QString()):QObject(parent),filePath(filePath),prm(processManagerPtr),CRF(CRF),mode(mode),otherArgument(otherArgument),UCINativeArguments(UCINativeArguments) {}
     virtual ~PictureHandler() {}
     void run(){
         StartTurn2BMP(filePath,otherArgument);
@@ -32,8 +32,9 @@ private:
     qreal CRF;
     UCIMode mode;
     QStringList otherArgument;
-    qint32 doTurnProcess(const QString &programDir, const QString &programFileName, const QString &filePath, const QString &newSuffix, const QStringList &otherArgument= QStringList(), const QString &nativeArguments = "");
-    void StartTurn2UCI(const QString &filePath, const qreal CRF, const UCIMode mode, const QStringList &otherArgument = QStringList());
+    QString UCINativeArguments;
+    qint32 doTurnProcess(const QString &programDir, const QString &programFileName, const QString &filePath, const QString &newSuffix, const QStringList &otherArgument= QStringList(), const QString &nativeArguments = QString());
+    void StartTurn2UCI(const QString &filePath, const qreal CRF, const UCIMode mode, const QStringList &otherArgument = QStringList(), const QString& UCINativeArguments = QString());
     void logAndCommandAndStatus(const QString message);
 
 signals:
@@ -50,8 +51,8 @@ public:
     MagickHelper(QObject* parent):QObject(parent) {
        // connect(prm,SIGNAL(processDone()),this,SLOT(deleteTempFiles()));
     }
-    void handleNewPicture(const QString &filePath, const qreal CRF, const PictureHandler::UCIMode mode, const QStringList &otherArgument = QStringList()){
-        pictures.append(new PictureHandler(this,prm,filePath,CRF,mode,otherArgument));
+    void handleNewPicture(const QString &filePath, const qreal CRF, const PictureHandler::UCIMode mode, const QStringList &otherArgument = QStringList(),const QString& UCINativeArguments = QString()){
+        pictures.append(new PictureHandler(this,prm,filePath,CRF,mode,otherArgument,UCINativeArguments));
         connect(pictures.value(pictures.count()-1),SIGNAL(addTempFile(QString)),this,SLOT(addTempFile(QString)));
         connect(pictures.value(pictures.count()-1),SIGNAL(FinishAPicture()),this,SLOT(addPictureFinished()));
         connect(pictures.value(pictures.count()-1),SIGNAL(showStatusMessage(QString)),this,SIGNAL(showStatusMessage(QString)));

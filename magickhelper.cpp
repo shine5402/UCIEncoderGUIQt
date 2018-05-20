@@ -5,7 +5,7 @@ namespace  {
 void PictureHandler::StartTurn2BMP(const QString &filePath, const QStringList &otherArgument)
 {
     if (QFileInfo(filePath).suffix() == "bmp"){
-        StartTurn2UCI(filePath,CRF,mode,otherArgument);
+        StartTurn2UCI(filePath,CRF,mode,otherArgument,UCINativeArguments);
         return;
     }
     auto id = doTurnProcess(paths::ImageMagickPath,"convert.exe",filePath,".bmp",otherArgument);
@@ -14,20 +14,17 @@ void PictureHandler::StartTurn2BMP(const QString &filePath, const QStringList &o
 
 }
 
-void PictureHandler::StartTurn2UCI(const QString &filePath,const qreal CRF, const UCIMode mode,const QStringList &otherArgument)
+void PictureHandler::StartTurn2UCI(const QString &filePath, const qreal CRF, const UCIMode mode, const QStringList &otherArgument, const QString &UCINativeArguments)
 {
     QString nativeArgument;
-    //QStringList argument;
-    //argument << QString(" -q %1").arg(CRF);
     if (mode == UCIMode::hevc)
         nativeArgument.append(" -hevc ");
-    //argument << otherArgument;
-
     nativeArgument.append(QString(" -q %1 ").arg(CRF));
     foreach (auto i, otherArgument) {
         nativeArgument.append(i).append(" ");
     }
-    auto id = doTurnProcess(paths::UCIENCPath,"ucienc.exe",filePath,".uci",QStringList());
+    nativeArgument.append(UCINativeArguments);
+    auto id = doTurnProcess(paths::UCIENCPath,"ucienc.exe",filePath,".uci",QStringList(),nativeArgument);
     connect(prm->getProcessPtr(id),SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(turn2UCI_processFinished(int,QProcess::ExitStatus)));
     showStatusMessage(QString(u8"对%1的UCI转换任务已经开始。").arg(filePath));
 }
@@ -64,7 +61,7 @@ void PictureHandler::turn2BMP_processFinished(int exitCode, QProcess::ExitStatus
     if (exitStatus == QProcess::NormalExit){
         logAndCommandAndStatus(QString(u8"对文件 %1 的BMP转换进程调用完成。").arg(filePath));
         logAndCommandAndStatus(QString(u8"对文件 %1 的UCI转换进程调用开始。").arg(filePath));
-        StartTurn2UCI(bmpPath,CRF,mode,otherArgument);
+        StartTurn2UCI(bmpPath,CRF,mode,otherArgument,UCINativeArguments);
     } else{
         logAndCommandAndStatus(QString(u8"对文件 %1 的BMP转换进程出现错误。exitCode为 %2").arg(filePath).arg(exitCode));
     }

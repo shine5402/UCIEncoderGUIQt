@@ -16,7 +16,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->statusBar->showMessage(u8"就绪");
     connect(magickhelper,SIGNAL(showStatusMessage(QString)),this,SLOT(showStatusMessage(QString)));
     setDockSize(ui->dockWidget,600,150);
-    ui->showAdvancedButton->setVisible(false);
+    // ui->showAdvancedButton->setVisible(false);
+    hideAdvanced();
+    QRegExp regx(R"(^[1-9]\d*$)");
+    QRegExpValidator* numValidator = new QRegExpValidator(regx,this);
+    ui->i420hLineEdit->setValidator(numValidator);
+    ui->i420wLineEdit->setValidator(numValidator);
+    ui->i444hLineEdit->setValidator(numValidator);
+    ui->i444wLineEdit->setValidator(numValidator);
 }
 
 MainWindow::~MainWindow()
@@ -95,9 +102,11 @@ void MainWindow::on_runButton_clicked()
 {
     try{
         auto paths = getFilePaths();
+        auto advancedNativeArguments = QString();
+        if (isAdvancedModified())
+            advancedNativeArguments = getAdvancedNativeArguments();
         foreach (auto path, paths) {
-            // qDebug() << path;
-            magickhelper->handleNewPicture(path,ui->CRFBox->value(),ui->x264radioButton->isChecked()?(PictureHandler::UCIMode::avc):(PictureHandler::UCIMode::hevc));
+            magickhelper->handleNewPicture(path,ui->CRFBox->value(),ui->x264radioButton->isChecked()?(PictureHandler::UCIMode::avc):(PictureHandler::UCIMode::hevc),QStringList(),advancedNativeArguments);
         }
         magickhelper->runAll();
         startUIProgress(1,2*ui->fileListWidget->count());
@@ -170,6 +179,10 @@ void MainWindow::showUnrenamedTempFiles(const QList<QPair<QString,QString>> unRe
 
 void MainWindow::addCommandOutput(const int ProcessID,const QString output)
 {
+    if (output.contains(u8"error",Qt::CaseInsensitive)){
+        addCommandError(ProcessID,output);
+        return;
+    }
     ui->commandOuptutBrowser->insertPlainText(QString(u8"来自程序运行器ID %1 的输出：").arg(ProcessID));
     ui->commandOuptutBrowser->insertHtml("<p><br/></p>");
     ui->commandOuptutBrowser->insertPlainText(output);
@@ -286,8 +299,11 @@ void MainWindow::on_actionAbout_triggered()
 {
     QMessageBox::about(this,u8"关于 UCI Encoder GUI",QString(u8"<h3>关于 UCI Encoder GUI</h3>"
                                                            u8"<p>版本 %1 编译时间：%2 %3</p>"
-                                                           u8"<p>版权所有 2018 shine_5402</p>"
+                                                           u8"<p>版权所有 2018 <a href=\"https://shine5402.top/\">shine_5402</a></p>"
                                                            u8"<p>UCI Encoder GUI 是 UCI Encoder 的一个简单前端GUI。它可以让使用者更加轻松地应对使用 UCI Encoder 进行大量图片操作的情况。</p>"
+                                                           u8"<p>Github 仓库地址：<a href=\"https://github.com/shine5402/UCIEncoderGUIQt\">https://github.com/shine5402/UCIEncoderGUIQt</a>"
+                                                           u8"<p>贴吧地址：<a href=\"https://tieba.baidu.com/p/5703612353\">https://tieba.baidu.com/p/5703612353</a>"
+                                                           u8"<p></br></p>"
                                                            u8"<p>本程序源代码以 GNU GPL v3 协议开源，您可以依据此协议的条款重新分发和/或修改它。</p>"
                                                            u8"<p>我们分发这个程序的目的是希望它有用，但是我们对它的可用性没有任何保证，甚至也没有对于适销性或适用于特定用途的默示保证。有关详细信息，请参阅GNU通用公共许可证。</p>"
                                                            u8"<p>您应该在收到本程序的同时就已经收到GNU通用公共许可证的副本。 如果没有，请参阅"
@@ -299,4 +315,180 @@ void MainWindow::on_actionAbout_triggered()
                                                            u8"<li>x264 (xiaowan) (<a href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">GNU GPL v2</a>)</li>"
                                                            u8"<li>x265 (<a href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">GNU GPL v2</a>)</li>"
                                                            u8"</ul>").arg(VERSION_STRING).arg(__DATE__).arg(__TIME__));
+}
+
+void MainWindow::hideAdvanced()
+{
+    ui->advancedParameterWidget->hide();
+}
+void MainWindow::showAdvanced()
+{
+    ui->advancedParameterWidget->show();
+}
+
+void MainWindow::on_showAdvancedButton_clicked()
+{
+    if (ui->advancedParameterWidget->isHidden())
+    {
+        ui->advancedParameterWidget->show();
+        ui->showAdvancedButton->setText(u8"显示更少参数");
+    }
+    else
+    {
+        ui->advancedParameterWidget->hide();
+        if (isAdvancedModified())
+            ui->showAdvancedButton->setText(u8"显示更多参数（已修改）");
+        else
+            ui->showAdvancedButton->setText(u8"显示更多参数");
+    }
+}
+
+void MainWindow::on_CRFBox_valueChanged(double arg1)
+{
+    if (!ui->QcheckBox->isChecked())
+        ui->CRFBox_Q->setValue(arg1);
+}
+
+void MainWindow::on_QcheckBox_stateChanged(int arg1)
+{
+    if (arg1 == Qt::CheckState::Checked){
+        ui->CRFBox_Q->setEnabled(true);
+    }
+    else
+    {
+        ui->CRFBox_Q->setEnabled(false);
+        ui->CRFBox_Q->setValue(ui->CRFBox->value());
+    }
+}
+
+void MainWindow::on_xCheckBox_stateChanged(int arg1)
+{
+    if (arg1 == Qt::CheckState::Checked){
+        ui->xPushButton->setEnabled(true);
+    }
+    else
+    {
+        ui->xPushButton->setEnabled(false);
+        xString.clear();
+    }
+}
+
+void MainWindow::on_XCheckBox_stateChanged(int arg1)
+{
+    if (arg1 == Qt::CheckState::Checked){
+        ui->XPushButton->setEnabled(true);
+    }
+    else
+    {
+        ui->XPushButton->setEnabled(false);
+        XString.clear();
+    }
+}
+
+void MainWindow::on_pCheckBox_stateChanged(int arg1)
+{
+    if (arg1 == Qt::CheckState::Checked){
+        ui->pLineEdit->setEnabled(true);
+    }
+    else
+    {
+        ui->pLineEdit->setEnabled(false);
+    }
+}
+
+void MainWindow::on_i420CheckBox_stateChanged(int arg1)
+{
+    if (arg1 == Qt::CheckState::Checked){
+        ui->i420wLineEdit->setEnabled(true);
+        ui->sCheckBox->setChecked(false);
+        ui->o420CheckBox->setChecked(false);
+        ui->o444CheckBox->setChecked(false);
+        ui->sCheckBox->setEnabled(false);
+        ui->o420CheckBox->setEnabled(false);
+        ui->o444CheckBox->setEnabled(false);
+    }
+    else
+    {
+        ui->i420hLineEdit->setEnabled(false);
+        ui->i420wLineEdit->setEnabled(false);
+        ui->i420hLineEdit->clear();
+        ui->i420wLineEdit->clear();
+        ui->sCheckBox->setChecked(true);
+        ui->o420CheckBox->setChecked(true);
+        ui->o444CheckBox->setChecked(true);
+        ui->sCheckBox->setEnabled(true);
+        ui->o420CheckBox->setEnabled(true);
+        ui->o444CheckBox->setEnabled(true);
+    }
+}
+
+
+
+void MainWindow::on_i420wLineEdit_textChanged(const QString &arg1)
+{
+    if (arg1 != ""){
+        ui->i420hLineEdit->setEnabled(true);
+    } else {
+        ui->i420hLineEdit->setEnabled(false);
+    }
+}
+
+void MainWindow::on_xPushButton_clicked()
+{
+    xString = QInputDialog::getText(this,u8"输入自定义参数",u8"请输入UCI Encoder调用x264/5时应使用的参数：");
+}
+
+void MainWindow::on_XPushButton_clicked()
+{
+    XString = QInputDialog::getText(this,u8"输入自定义参数",u8"请输入UCI Encoder调用x264/5压制Alpha通道时应使用的参数：");
+}
+
+bool MainWindow::isAdvancedModified()
+{
+    return ui->o420CheckBox->isChecked() || ui->o444CheckBox->isChecked() ||ui->i420CheckBox->isChecked() ||ui->i444CheckBox->isChecked() ||ui->sCheckBox->isChecked() ||ui->XCheckBox->isChecked() ||ui->xCheckBox->isChecked() ||ui->quietCheckBox->isChecked() ||ui->o10bCheckBox->isChecked() ||ui->i10bCheckBox->isChecked() ||ui->QcheckBox->isChecked() ||ui->pCheckBox->isChecked() || ui->infoCheckBox->isChecked();
+}
+QString MainWindow::getAdvancedNativeArguments()
+{
+    QString result;
+    if (ui->QcheckBox->isChecked())
+        result.append(QString(" -Q %1").arg(ui->CRFBox_Q->value()));
+    if (ui->xCheckBox->isChecked())
+        result.append(QString(" -x \"%1\"").arg(xString));
+    if (ui->XCheckBox->isChecked())
+        result.append(QString(" -X \"%1\"").arg(xString));
+    if (ui->pCheckBox->isChecked())
+        result.append(QString(" -p %1").arg(ui->pLineEdit->text()));
+    if (ui->sCheckBox->isChecked())
+        result.append(u8" -s");
+    if (ui->o444CheckBox->isChecked())
+        result.append(u8" -o444");
+    if (ui->o420CheckBox->isChecked())
+        result.append(u8" -o420");
+    if (ui->o10bCheckBox->isChecked())
+        result.append(u8" -o10b");
+    if (ui->i444CheckBox->isChecked())
+        result.append(QString(u8" -i444 %1 %2").arg(ui->i444wLineEdit->text(),ui->i444hLineEdit->text()));
+    if (ui->i420CheckBox->isChecked())
+        result.append(QString(u8" -i420 %1 %2").arg(ui->i420wLineEdit->text(),ui->i420hLineEdit->text()));
+    if (ui->i10bCheckBox->isChecked())
+        result.append(u8" -i10b");
+    if (ui->infoCheckBox->isChecked())
+        result.append(u8" -info");
+    if (ui->quietCheckBox->isChecked())
+        result.append(u8" -quiet");
+    return result;
+}
+
+void MainWindow::on_i444CheckBox_stateChanged(int arg1)
+{
+    if (arg1 == Qt::CheckState::Checked){
+        ui->i444wLineEdit->setEnabled(true);
+    }
+    else
+    {
+        ui->i444hLineEdit->setEnabled(false);
+        ui->i444wLineEdit->setEnabled(false);
+        ui->i444hLineEdit->clear();
+        ui->i444wLineEdit->clear();
+    }
 }
