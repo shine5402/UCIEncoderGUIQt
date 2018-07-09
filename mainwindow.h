@@ -24,6 +24,7 @@
 #include <QRegExp>
 #include <QRegExpValidator>
 #include <QInputDialog>
+#include <QComboBox>
 namespace Ui {
     class MainWindow;
 }
@@ -67,35 +68,37 @@ private slots:
     void on_dockWidget_visibilityChanged(bool visible);
 
     void on_actionAboutQt_triggered();
- void returnToOldMaxMinSizes();
- void on_commandOuptutBrowser_textChanged();
 
- void on_actionAbout_triggered();
+    void returnToOldMaxMinSizes();
 
+    void on_commandOuptutBrowser_textChanged();
 
- void on_showAdvancedButton_clicked();
+    void on_actionAbout_triggered();
 
- void on_CRFBox_valueChanged(double arg1);
+    void on_showAdvancedButton_clicked();
 
- void on_QcheckBox_stateChanged(int arg1);
+    void on_CRFBox_valueChanged(double arg1);
 
- void on_xCheckBox_stateChanged(int arg1);
+    void on_QcheckBox_stateChanged(int arg1);
 
- void on_XCheckBox_stateChanged(int arg1);
+    void on_xCheckBox_stateChanged(int arg1);
 
- void on_pCheckBox_stateChanged(int arg1);
+    void on_XCheckBox_stateChanged(int arg1);
 
- void on_i420CheckBox_stateChanged(int arg1);
+    void on_pCheckBox_stateChanged(int arg1);
 
+    void on_i420CheckBox_stateChanged(int arg1);
 
- void on_i420wLineEdit_textChanged(const QString &arg1);
+    void on_i420wLineEdit_textChanged(const QString &arg1);
 
- void on_xPushButton_clicked();
+    void on_xPushButton_clicked();
 
- void on_XPushButton_clicked();
+    void on_XPushButton_clicked();
 
- void on_i444CheckBox_stateChanged(int arg1);
-
+    void on_i444CheckBox_stateChanged(int arg1);
+#ifdef Q_OS_WIN64
+    void toolChainBoxChanged(const QString &text);
+#endif
 private:
     Ui::MainWindow *ui;
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -123,13 +126,16 @@ private:
     QString XString;
     bool isAdvancedModified();
     QString getAdvancedNativeArguments();
+#ifdef Q_OS_WIN64
+    bool isToolchain_x64 = false;
+#endif
 };
 
 namespace MessageBox{
-     void warning(QWidget* parent,const QString& messageText);
-     void warning(QWidget* parent,const wchar_t* messageText);
-     void information(QWidget* parent,const QString& messageText);
-     void information(QWidget* parent,const wchar_t* messageText);
+    void warning(QWidget* parent,const QString& messageText);
+    void warning(QWidget* parent,const wchar_t* messageText);
+    void information(QWidget* parent,const QString& messageText);
+    void information(QWidget* parent,const wchar_t* messageText);
 }
 
 #endif // MAINWINDOW_H

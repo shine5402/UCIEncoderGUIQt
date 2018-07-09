@@ -24,6 +24,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->i420wLineEdit->setValidator(numValidator);
     ui->i444hLineEdit->setValidator(numValidator);
     ui->i444wLineEdit->setValidator(numValidator);
+#ifdef Q_OS_WIN64
+    this->setWindowTitle(this->windowTitle() + " x64");
+    QComboBox* toolchainBox = new QComboBox(this);
+    QStringList toolchains {"x64","x86"};
+    toolchainBox->addItems(toolchains);
+    toolchainBox->setInsertPolicy(QComboBox::NoInsert);
+    connect(toolchainBox,SIGNAL(currentIndexChanged(QString)),this,SLOT(toolChainBoxChanged(QString)));
+    ui->runButtonLayout->insertWidget(1,toolchainBox);
+#endif
+
 }
 
 MainWindow::~MainWindow()
@@ -492,3 +502,9 @@ void MainWindow::on_i444CheckBox_stateChanged(int arg1)
         ui->i444wLineEdit->clear();
     }
 }
+#ifdef Q_OS_WIN64
+void MainWindow::toolChainBoxChanged(const QString &text)
+{
+    isToolchain_x64 = (text == "x64");
+}
+#endif
