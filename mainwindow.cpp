@@ -25,8 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->i444hLineEdit->setValidator(numValidator);
     ui->i444wLineEdit->setValidator(numValidator);
 #ifdef Q_OS_WIN64
-#ifdef TOOLCHAIN_WIN64_WITH_WIN32
     this->setWindowTitle(this->windowTitle() + " x64");
+#ifdef TOOLCHAIN_WIN64_WITH_WIN32
     QComboBox* toolchainBox = new QComboBox(this);
     QStringList toolchains {"x64","x86"};
     toolchainBox->addItems(toolchains);
@@ -315,7 +315,7 @@ void MainWindow::on_actionAbout_triggered()
 #else
     version.append(u8" x64");
 #endif
-#elif Q_OS_WIN32
+#elif defined(Q_OS_WIN32)
     version.append(u8" x86");
 #endif
 #ifdef TOOLCHAIN_IMAGEMAGICK_CONVERT_MIN

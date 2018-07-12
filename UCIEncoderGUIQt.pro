@@ -36,7 +36,6 @@ HEADERS += \
         mainwindow.h \
     processmanager.h \
     magickhelper.h \
-    ../LeafETestSystemAnswerer/leaflogger.h \
     publicdefines.h \
     public_variable.h \
     ../LeafPublicQtClasses/leaflogger.h

@@ -4,8 +4,8 @@ namespace paths {
     const QString ImageMagickPath = R"(E:\ImageMagick\)";
     const QString UCIENCPath = R"(D:\uci\)";
 #else
-    QString ImageMagickPath = R"(.\ImageMagick\)";
-    QString UCIENCPath = R"(.\UCIENC\)";
+    const QString ImageMagickPath = R"(.\ImageMagick\)";
+    const QString UCIENCPath = R"(.\UCIENC\)";
 #endif
 }
 bool isToolchain_x64 = true;
