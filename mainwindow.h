@@ -1,8 +1,7 @@
 ﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#define VERSION_STRING "0.1.2"
-
+#include "publicdefines.h"
 #include <QMainWindow>
 #include <QListWidget>
 #include <QFile>
@@ -126,9 +125,6 @@ private:
     QString XString;
     bool isAdvancedModified();
     QString getAdvancedNativeArguments();
-#ifdef Q_OS_WIN64
-    bool isToolchain_x64 = false;
-#endif
 };
 
 namespace MessageBox{
