@@ -6,7 +6,7 @@
 #include <QDateTime>
 #include <exception>
 #include <QDebug>
-#include "../LeafETestSystemAnswerer/leaflogger.h"
+#include "../LeafPublicQtClasses/leaflogger.h"
 class process :public QObject
 {
     Q_OBJECT

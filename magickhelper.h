@@ -5,10 +5,10 @@
 #include <QObject>
 #include <QProcess>
 #include <QDebug>
-#include "public_namespaces.h"
+#include "public_variable.h"
 #include <QDir>
 #include <QFileInfo>
-#include "../LeafETestSystemAnswerer/leaflogger.h"
+#include "../LeafPublicQtClasses/leaflogger.h"
 #include <exception>
 #include <QRandomGenerator>
 class PictureHandler : public QObject

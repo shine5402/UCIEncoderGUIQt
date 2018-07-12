@@ -8,7 +8,19 @@ void PictureHandler::StartTurn2BMP(const QString &filePath, const QStringList &o
         StartTurn2UCI(filePath,CRF,mode,otherArgument,UCINativeArguments);
         return;
     }
-    auto id = doTurnProcess(paths::ImageMagickPath,"convert.exe",filePath,".bmp",otherArgument);
+    auto magickPath = paths::ImageMagickPath;
+#ifdef Q_OS_WIN64
+    if (isToolchain_x64) {
+        magickPath.append(R"(x64\)");
+    }
+    else
+    {
+#endif
+        magickPath.append(R"(x86\)");
+#ifdef Q_OS_WIN64
+    }
+#endif
+    auto id = doTurnProcess(magickPath,"convert.exe",filePath,".bmp",otherArgument);
     connect(prm->getProcessPtr(id),SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(turn2BMP_processFinished(int,QProcess::ExitStatus)));
     showStatusMessage(QString(u8"对%1的BMP转换任务已经开始。").arg(filePath));
 
@@ -24,7 +36,19 @@ void PictureHandler::StartTurn2UCI(const QString &filePath, const qreal CRF, con
         nativeArgument.append(i).append(" ");
     }
     nativeArgument.append(UCINativeArguments);
-    auto id = doTurnProcess(paths::UCIENCPath,"ucienc.exe",filePath,".uci",QStringList(),nativeArgument);
+    auto UCIPath = paths::UCIENCPath;
+#ifdef Q_OS_WIN64
+    if (isToolchain_x64) {
+        UCIPath.append(R"(x64\)");
+    }
+    else
+    {
+#endif
+        UCIPath.append(R"(x86\)");
+#ifdef Q_OS_WIN64
+    }
+#endif
+    auto id = doTurnProcess(UCIPath,"ucienc.exe",filePath,".uci",QStringList(),nativeArgument);
     connect(prm->getProcessPtr(id),SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(turn2UCI_processFinished(int,QProcess::ExitStatus)));
     showStatusMessage(QString(u8"对%1的UCI转换任务已经开始。").arg(filePath));
 }
@@ -84,7 +108,7 @@ void MagickHelper::doRename()
         if (!QFile(filePath.first).rename(filePath.second))
             unrenamed.append(filePath);
         else
-           logAndCommandAndStatus(QString(u8"重命名文件%1 -> %2完成").arg(filePath.first).arg(filePath.second));
+            logAndCommandAndStatus(QString(u8"重命名文件%1 -> %2完成").arg(filePath.first).arg(filePath.second));
     }
     if (unrenamed.count() != 0)
         fileUnrenamed(unrenamed);

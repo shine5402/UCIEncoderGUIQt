@@ -24,6 +24,18 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->i420wLineEdit->setValidator(numValidator);
     ui->i444hLineEdit->setValidator(numValidator);
     ui->i444wLineEdit->setValidator(numValidator);
+#ifdef Q_OS_WIN64
+#ifdef TOOLCHAIN_WIN64_WITH_WIN32
+    this->setWindowTitle(this->windowTitle() + " x64");
+    QComboBox* toolchainBox = new QComboBox(this);
+    QStringList toolchains {"x64","x86"};
+    toolchainBox->addItems(toolchains);
+    toolchainBox->setInsertPolicy(QComboBox::NoInsert);
+    connect(toolchainBox,SIGNAL(currentIndexChanged(QString)),this,SLOT(toolChainBoxChanged(QString)));
+    ui->runButtonLayout->insertWidget(1,toolchainBox);
+#endif
+#endif
+
 }
 
 MainWindow::~MainWindow()
@@ -110,7 +122,6 @@ void MainWindow::on_runButton_clicked()
         }
         magickhelper->runAll();
         startUIProgress(1,2*ui->fileListWidget->count());
-        //clearFileList();
         disableNewTasks();
     }
     catch (exceptions::FileListEmpty &){
@@ -297,24 +308,39 @@ void MainWindow::on_commandOuptutBrowser_textChanged()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::about(this,u8"关于 UCI Encoder GUI",QString(u8"<h3>关于 UCI Encoder GUI</h3>"
-                                                           u8"<p>版本 %1 编译时间：%2 %3</p>"
-                                                           u8"<p>版权所有 2018 <a href=\"https://shine5402.top/\">shine_5402</a></p>"
-                                                           u8"<p>UCI Encoder GUI 是 UCI Encoder 的一个简单前端GUI。它可以让使用者更加轻松地应对使用 UCI Encoder 进行大量图片操作的情况。</p>"
-                                                           u8"<p>Github 仓库地址：<a href=\"https://github.com/shine5402/UCIEncoderGUIQt\">https://github.com/shine5402/UCIEncoderGUIQt</a>"
-                                                           u8"<p>贴吧地址：<a href=\"https://tieba.baidu.com/p/5703612353\">https://tieba.baidu.com/p/5703612353</a>"
-                                                           u8"<p></br></p>"
-                                                           u8"<p>本程序源代码以 GNU GPL v3 协议开源，您可以依据此协议的条款重新分发和/或修改它。</p>"
-                                                           u8"<p>我们分发这个程序的目的是希望它有用，但是我们对它的可用性没有任何保证，甚至也没有对于适销性或适用于特定用途的默示保证。有关详细信息，请参阅GNU通用公共许可证。</p>"
-                                                           u8"<p>您应该在收到本程序的同时就已经收到GNU通用公共许可证的副本。 如果没有，请参阅"
-                                                           u8"<a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a>。</p>"
-                                                           u8"<p>本程序的发行包中包含了以下开源软件：</p>"
-                                                           u8"<ul>"
-                                                           u8"<li>UCI Encoder (<a href=\"https://www.gnu.org/licenses/lgpl.html\">GNU LGPL v3</a>)</li>"
-                                                           u8"<li>ImageMagick (<a href=\"https://www.imagemagick.org/script/license.php\">Apache 2.0 license</a>)</li>"
-                                                           u8"<li>x264 (xiaowan) (<a href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">GNU GPL v2</a>)</li>"
-                                                           u8"<li>x265 (<a href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">GNU GPL v2</a>)</li>"
-                                                           u8"</ul>").arg(VERSION_STRING).arg(__DATE__).arg(__TIME__));
+    auto version = QString("%1").arg(VERSION_STRING);
+#ifdef Q_OS_WIN64
+#ifdef TOOLCHAIN_WIN64_WITH_WIN32
+    version.append(u8" x64 (同时包含x86工具链)");
+#else
+    version.append(u8" x64");
+#endif
+#elif Q_OS_WIN32
+    version.append(u8" x86");
+#endif
+#ifdef TOOLCHAIN_IMAGEMAGICK_CONVERT_MIN
+    version.append(u8" (ImageMagick只包含convert组件)");
+#endif
+    auto showString = QString(u8"<h3>关于 UCI Encoder GUI</h3>"
+                              u8"<p>版本：%1 </p><p>编译时间：%2 %3</p>"
+                              u8"<p>版权所有 2018 <a href=\"https://shine5402.top/\">shine_5402</a></p>"
+                              u8"<p>UCI Encoder GUI 是 UCI Encoder 的一个简单前端GUI。它可以让使用者更加轻松地应对使用 UCI Encoder 进行大量图片操作的情况。</p>"
+                              u8"<p>Github 仓库地址：<a href=\"https://github.com/shine5402/UCIEncoderGUIQt\">https://github.com/shine5402/UCIEncoderGUIQt</a>"
+                              u8"<p>贴吧地址：<a href=\"https://tieba.baidu.com/p/5703612353\">https://tieba.baidu.com/p/5703612353</a>"
+                              u8"<p></br></p>"
+                              u8"<p>本程序源代码以 GNU GPL v3 协议开源，您可以依据此协议的条款重新分发和/或修改它。</p>"
+                              u8"<p>我们分发这个程序的目的是希望它有用，但是我们对它的可用性没有任何保证，甚至也没有对于适销性或适用于特定用途的默示保证。有关详细信息，请参阅GNU通用公共许可证。</p>"
+                              u8"<p>您应该在收到本程序的同时就已经收到GNU通用公共许可证的副本。 如果没有，请参阅"
+                              u8"<a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a>。</p>"
+                              u8"<p>本程序的发行包中包含了以下开源软件：</p>"
+                              u8"<ul>"
+                              u8"<li>UCI Encoder (<a href=\"https://www.gnu.org/licenses/lgpl.html\">GNU LGPL v3</a>)</li>"
+                              u8"<li>ImageMagick (<a href=\"https://www.imagemagick.org/script/license.php\">Apache 2.0 license</a>)</li>"
+                              u8"<li>x264 (<a href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">GNU GPL v2</a>)</li>"
+                              u8"<li>x265 (<a href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">GNU GPL v2</a>)</li>"
+                              u8"</ul>"
+                              u8"<p>此外，本程序的发行包中一些开源软件使用了其不同于官方的分支版本。您可以手动调用其帮助信息，或在贴吧页面中查看详情。</p>").arg(version).arg(__DATE__).arg(__TIME__);
+    QMessageBox::about(this,u8"关于 UCI Encoder GUI",showString);
 }
 
 void MainWindow::hideAdvanced()
@@ -492,3 +518,9 @@ void MainWindow::on_i444CheckBox_stateChanged(int arg1)
         ui->i444wLineEdit->clear();
     }
 }
+#ifdef Q_OS_WIN64
+void MainWindow::toolChainBoxChanged(const QString &text)
+{
+    isToolchain_x64 = (text == "x64");
+}
+#endif

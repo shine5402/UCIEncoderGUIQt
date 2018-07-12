@@ -29,15 +29,17 @@ SOURCES += \
         mainwindow.cpp \
     processmanager.cpp \
     magickhelper.cpp \
-    public_namespaces.cpp \
-    ../LeafETestSystemAnswerer/leaflogger.cpp
+    public_variable.cpp \
+    ../LeafPublicQtClasses/leaflogger.cpp
 
 HEADERS += \
         mainwindow.h \
     processmanager.h \
     magickhelper.h \
-    public_namespaces.h \
-    ../LeafETestSystemAnswerer/leaflogger.h
+    ../LeafETestSystemAnswerer/leaflogger.h \
+    publicdefines.h \
+    public_variable.h \
+    ../LeafPublicQtClasses/leaflogger.h
 
 FORMS += \
         mainwindow.ui
