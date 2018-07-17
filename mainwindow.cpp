@@ -139,7 +139,7 @@ void MainWindow::on_x264radioButton_clicked()
 void MainWindow::on_x265radioButton_clicked()
 {
     if (ui->x265radioButton->isChecked())
-        ui->CRFBox->setValue(53.0);
+        ui->CRFBox->setValue(42.0);
 }
 
 void MainWindow::refreshUIProgress(int progressValue)

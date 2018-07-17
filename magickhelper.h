@@ -1,7 +1,7 @@
 ﻿#ifndef MAGICKHELPER_H
 #define MAGICKHELPER_H
 
-#include "processmanager.h"
+#include "../LeafPublicQtClasses/processmanager.h"
 #include <QObject>
 #include <QProcess>
 #include <QDebug>

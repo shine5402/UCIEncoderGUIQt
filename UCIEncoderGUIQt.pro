@@ -27,18 +27,18 @@ RC_ICONS += icon_new.ico
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    processmanager.cpp \
     magickhelper.cpp \
     public_variable.cpp \
-    ../LeafPublicQtClasses/leaflogger.cpp
+    ../LeafPublicQtClasses/leaflogger.cpp \
+    ../LeafPublicQtClasses/processmanager.cpp
 
 HEADERS += \
         mainwindow.h \
-    processmanager.h \
     magickhelper.h \
     publicdefines.h \
     public_variable.h \
-    ../LeafPublicQtClasses/leaflogger.h
+    ../LeafPublicQtClasses/leaflogger.h \
+    ../LeafPublicQtClasses/processmanager.h
 
 FORMS += \
         mainwindow.ui
