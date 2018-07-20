@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>icon_new.ico</normaloff>icon_new.ico</iconset>
+    <normaloff>icon.ico</normaloff>icon.ico</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="enabled">
