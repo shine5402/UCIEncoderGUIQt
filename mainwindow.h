@@ -27,7 +27,10 @@
 namespace Ui {
     class MainWindow;
 }
-
+constexpr double CRF_MAX = 51;
+constexpr double CRF_MIN = 0;
+constexpr double CRF_DEFALUT_QUALITY = 0.6;
+constexpr int CRF_SLIDER_DEFAULT_VALUE = 60;
 
 class MainWindow : public QMainWindow
 {
@@ -76,8 +79,6 @@ private slots:
 
     void on_showAdvancedButton_clicked();
 
-    void on_CRFBox_valueChanged(double arg1);
-
     void on_QcheckBox_stateChanged(int arg1);
 
     void on_xCheckBox_stateChanged(int arg1);
@@ -98,6 +99,10 @@ private slots:
 #ifdef Q_OS_WIN64
     void toolChainBoxChanged(const QString &text);
 #endif
+    void on_CRFhorizontalSlider_valueChanged(int value);
+
+    void on_CRFhorizontalSlider_Q_valueChanged(int value);
+
 private:
     Ui::MainWindow *ui;
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -125,6 +130,13 @@ private:
     QString XString;
     bool isAdvancedModified();
     QString getAdvancedNativeArguments();
+
+    double CRF = (CRF_MAX - CRF_MIN)*(1 - CRF_DEFALUT_QUALITY) + CRF_MIN;
+    double CRF_Q = (CRF_MAX - CRF_MIN)*(1 - CRF_DEFALUT_QUALITY) + CRF_MIN;
+    void updateCRFFromSliderValue(int value);
+    void updateCRFQFromSliderValue(int value);
+    void updateCRFFromCRFValue(double CRF);
+    void updateCRFQFromCRFValue(double CRF_Q);
 };
 
 namespace MessageBox{

@@ -35,7 +35,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->runButtonLayout->insertWidget(1,toolchainBox);
 #endif
 #endif
-
+    //updateCRFFromSliderValue(60);
+    //updateCRFQFromSliderValue(60);
+    updateCRFFromCRFValue(27.0);
 }
 
 MainWindow::~MainWindow()
@@ -118,7 +120,7 @@ void MainWindow::on_runButton_clicked()
         if (isAdvancedModified())
             advancedNativeArguments = getAdvancedNativeArguments();
         foreach (auto path, paths) {
-            magickhelper->handleNewPicture(path,ui->CRFBox->value(),ui->x264radioButton->isChecked()?(PictureHandler::UCIMode::avc):(PictureHandler::UCIMode::hevc),QStringList(),advancedNativeArguments);
+            magickhelper->handleNewPicture(path,CRF,ui->x264radioButton->isChecked()?(PictureHandler::UCIMode::avc):(PictureHandler::UCIMode::hevc),QStringList(),advancedNativeArguments);
         }
         magickhelper->runAll();
         startUIProgress(1,2*ui->fileListWidget->count());
@@ -133,13 +135,13 @@ void MainWindow::on_runButton_clicked()
 void MainWindow::on_x264radioButton_clicked()
 {
     if (ui->x264radioButton->isChecked())
-        ui->CRFBox->setValue(27.0);
+        updateCRFFromCRFValue(27.0);
 }
 
 void MainWindow::on_x265radioButton_clicked()
 {
     if (ui->x265radioButton->isChecked())
-        ui->CRFBox->setValue(42.0);
+        updateCRFFromCRFValue(42.0);
 }
 
 void MainWindow::refreshUIProgress(int progressValue)
@@ -218,24 +220,10 @@ void MainWindow::addCommandMessage(const QString message)
 }
 
 void MainWindow::disableNewTasks(){
-    ui->addButton->setEnabled(false);
-    ui->clearButton->setEnabled(false);
-    ui->deleteButton->setEnabled(false);
-    ui->CRFBox->setEnabled(false);
-    ui->fileListWidget->setEnabled(false);
-    ui->runButton->setEnabled(false);
-    ui->x264radioButton->setEnabled(false);
-    ui->x265radioButton->setEnabled(false);
+    centralWidget()->setEnabled(false);
 }
 void MainWindow::enableNewTasks(){
-    ui->addButton->setEnabled(true);
-    ui->clearButton->setEnabled(true);
-    ui->deleteButton->setEnabled(true);
-    ui->CRFBox->setEnabled(true);
-    ui->fileListWidget->setEnabled(true);
-    ui->runButton->setEnabled(true);
-    ui->x264radioButton->setEnabled(true);
-    ui->x265radioButton->setEnabled(true);
+    centralWidget()->setEnabled(true);
 }
 namespace MessageBox
 {
@@ -369,21 +357,15 @@ void MainWindow::on_showAdvancedButton_clicked()
     }
 }
 
-void MainWindow::on_CRFBox_valueChanged(double arg1)
-{
-    if (!ui->QcheckBox->isChecked())
-        ui->CRFBox_Q->setValue(arg1);
-}
 
 void MainWindow::on_QcheckBox_stateChanged(int arg1)
 {
     if (arg1 == Qt::CheckState::Checked){
-        ui->CRFBox_Q->setEnabled(true);
+        ui->CRFQWidget->setEnabled(true);
     }
     else
     {
-        ui->CRFBox_Q->setEnabled(false);
-        ui->CRFBox_Q->setValue(ui->CRFBox->value());
+        ui->CRFQWidget->setEnabled(false);
     }
 }
 
@@ -477,7 +459,7 @@ QString MainWindow::getAdvancedNativeArguments()
 {
     QString result;
     if (ui->QcheckBox->isChecked())
-        result.append(QString(" -Q %1").arg(ui->CRFBox_Q->value()));
+        result.append(QString(" -Q %1").arg(CRF_Q));
     if (ui->xCheckBox->isChecked())
         result.append(QString(" -x \"%1\"").arg(xString));
     if (ui->XCheckBox->isChecked())
@@ -524,3 +506,47 @@ void MainWindow::toolChainBoxChanged(const QString &text)
     isToolchain_x64 = (text == "x64");
 }
 #endif
+
+void MainWindow::updateCRFFromSliderValue(int value)
+{
+    double value_d = value;
+    CRF = (CRF_MAX - CRF_MIN)*(1 - value_d/ui->CRFhorizontalSlider->maximum()) + CRF_MIN;
+    //qDebug() << CRF;
+    //qDebug() << value_d/ui->CRFhorizontalSlider->maximum();
+    ui->CRFLabel->setText(QString(u8"%1% (CRF:%2)").arg(value).arg(CRF));
+}
+void MainWindow::updateCRFQFromSliderValue(int value)
+{
+    double value_d = value;
+    CRF_Q = (CRF_MAX - CRF_MIN)*(1 - value_d/ui->CRFhorizontalSlider_Q->maximum()) + CRF_MIN;
+    //qDebug() << CRF;
+    //qDebug() << value_d/ui->CRFhorizontalSlider->maximum();
+    ui->CRFLabel_Q->setText(QString(u8"%1% (CRF:%2)").arg(value).arg(CRF_Q));
+}
+void MainWindow::updateCRFFromCRFValue(double CRF)
+{
+    this->CRF = CRF;
+    ui->CRFhorizontalSlider->setValue(static_cast<int>(ui->CRFhorizontalSlider->maximum() - (CRF-CRF_MIN)/(CRF_MAX-CRF_MIN)*ui->CRFhorizontalSlider->maximum()));
+    ui->CRFLabel->setText(QString(u8"%1% (CRF:%2)").arg(ui->CRFhorizontalSlider->value()).arg(CRF));
+}
+void MainWindow::updateCRFQFromCRFValue(double CRF_Q)
+{
+    this->CRF_Q = CRF_Q;
+    ui->CRFhorizontalSlider_Q->setValue(static_cast<int>(ui->CRFhorizontalSlider_Q->maximum() - (CRF_Q-CRF_MIN)/(CRF_MAX-CRF_MIN)*ui->CRFhorizontalSlider_Q->maximum()));
+    ui->CRFLabel->setText(QString(u8"%1% (CRF:%2)").arg(ui->CRFhorizontalSlider_Q->value()).arg(CRF_Q));
+}
+
+void MainWindow::on_CRFhorizontalSlider_valueChanged(int value)
+{
+    updateCRFFromSliderValue(value);
+    if (!ui->QcheckBox->isChecked())
+    {
+        updateCRFQFromSliderValue(value);
+        ui->CRFhorizontalSlider_Q->setValue(value);
+    }
+}
+
+void MainWindow::on_CRFhorizontalSlider_Q_valueChanged(int value)
+{
+    updateCRFQFromSliderValue(value);
+}
