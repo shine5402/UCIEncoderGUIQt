@@ -30,7 +30,8 @@ SOURCES += \
     magickhelper.cpp \
     public_variable.cpp \
     ../LeafPublicQtClasses/leaflogger.cpp \
-    ../LeafPublicQtClasses/processmanager.cpp
+    ../LeafPublicQtClasses/processmanager.cpp \
+    qlabel_doubleclick.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -38,7 +39,8 @@ HEADERS += \
     publicdefines.h \
     public_variable.h \
     ../LeafPublicQtClasses/leaflogger.h \
-    ../LeafPublicQtClasses/processmanager.h
+    ../LeafPublicQtClasses/processmanager.h \
+    qlabel_doubleclick.h
 
 FORMS += \
         mainwindow.ui

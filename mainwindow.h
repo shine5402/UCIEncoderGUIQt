@@ -24,13 +24,14 @@
 #include <QRegExpValidator>
 #include <QInputDialog>
 #include <QComboBox>
+#include "qlabel_doubleclick.h"
 namespace Ui {
     class MainWindow;
 }
 constexpr double CRF_MAX = 51;
 constexpr double CRF_MIN = 0;
-constexpr double CRF_DEFALUT_QUALITY = 0.6;
-constexpr int CRF_SLIDER_DEFAULT_VALUE = 60;
+//constexpr double CRF_DEFALUT_QUALITY = 0.6;
+//constexpr int CRF_SLIDER_DEFAULT_VALUE = 60;
 
 class MainWindow : public QMainWindow
 {
@@ -103,6 +104,11 @@ private slots:
 
     void on_CRFhorizontalSlider_Q_valueChanged(int value);
 
+
+    void on_CRFLabel_doubleClicked();
+
+    void on_CRFLabel_Q_doubleClicked();
+
 private:
     Ui::MainWindow *ui;
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -131,8 +137,8 @@ private:
     bool isAdvancedModified();
     QString getAdvancedNativeArguments();
 
-    double CRF = (CRF_MAX - CRF_MIN)*(1 - CRF_DEFALUT_QUALITY) + CRF_MIN;
-    double CRF_Q = (CRF_MAX - CRF_MIN)*(1 - CRF_DEFALUT_QUALITY) + CRF_MIN;
+    double CRF;
+    double CRF_Q;
     void updateCRFFromSliderValue(int value);
     void updateCRFQFromSliderValue(int value);
     void updateCRFFromCRFValue(double CRF);
@@ -145,5 +151,4 @@ namespace MessageBox{
     void information(QWidget* parent,const QString& messageText);
     void information(QWidget* parent,const wchar_t* messageText);
 }
-
 #endif // MAINWINDOW_H

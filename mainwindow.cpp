@@ -550,3 +550,19 @@ void MainWindow::on_CRFhorizontalSlider_Q_valueChanged(int value)
 {
     updateCRFQFromSliderValue(value);
 }
+
+void MainWindow::on_CRFLabel_doubleClicked()
+{
+    bool ok = false;
+    auto newCRF = QInputDialog::getDouble(this,u8"输入一个CRF值",u8"输入一个CRF值。范围为0.0~51.0。",CRF,CRF_MIN,CRF_MAX,2,&ok);
+    if (&ok)
+        updateCRFFromCRFValue(newCRF);
+}
+
+void MainWindow::on_CRFLabel_Q_doubleClicked()
+{
+    bool ok = false;
+    auto newCRF = QInputDialog::getDouble(this,u8"输入一个CRF值",u8"输入一个CRF值。范围为0.0~51.0。",CRF_Q,CRF_MIN,CRF_MAX,2,&ok);
+    if (&ok)
+        updateCRFQFromCRFValue(newCRF);
+}
