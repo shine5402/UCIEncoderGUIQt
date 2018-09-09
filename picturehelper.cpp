@@ -1,7 +1,4 @@
-﻿#include "magickhelper.h"
-namespace  {
-    LeafLogger logger;
-}
+﻿#include "picturehelper.h"
 void PictureHandler::StartTurn2BMP(const QString &filePath, const QStringList &otherArgument)
 {
     if (QFileInfo(filePath).suffix() == "bmp"){
@@ -76,7 +73,7 @@ qint32 PictureHandler::doTurnProcess(const QString& programDir,const QString &pr
 }
 void PictureHandler::logAndCommandAndStatus(const QString message)
 {
-    logger.LogMessage(message);
+    LeafLogger::LogMessage(message);
     addCommandMessage(message);
     showStatusMessage(message);
 }
@@ -100,7 +97,7 @@ void PictureHandler::turn2UCI_processFinished(int exitCode, QProcess::ExitStatus
     }
 }
 
-void MagickHelper::doRename()
+void PictureHelper::doRename()
 {
     QList<QPair<QString,QString>> unrenamed;
     foreach (auto filePath, needRenamePaths) {
@@ -114,14 +111,14 @@ void MagickHelper::doRename()
         fileUnrenamed(unrenamed);
 }
 
-void MagickHelper::logAndCommandAndStatus(const QString message)
+void PictureHelper::logAndCommandAndStatus(const QString message)
 {
-    logger.LogMessage(message);
+    LeafLogger::LogMessage(message);
     addCommandMessage(message);
     showStatusMessage(message);
 }
 
-void MagickHelper::deleteTempFiles(){
+void PictureHelper::deleteTempFiles(){
     QStringList unRemoved;
     foreach (auto i, tempFilePaths) {
         QFile file(i);

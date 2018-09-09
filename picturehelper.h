@@ -1,5 +1,5 @@
-﻿#ifndef MAGICKHELPER_H
-#define MAGICKHELPER_H
+﻿#ifndef PICTUREHELPER_H
+#define PICTUREHELPER_H
 
 #include "../LeafPublicQtClasses/processmanager.h"
 #include <QObject>
@@ -44,11 +44,11 @@ signals:
     void showStatusMessage(const QString message);
     void addCommandMessage(const QString message);
 };
-class MagickHelper : public QObject
+class PictureHelper : public QObject
 {
     Q_OBJECT
 public:
-    MagickHelper(QObject* parent):QObject(parent) {
+    PictureHelper(QObject* parent):QObject(parent) {
        // connect(prm,SIGNAL(processDone()),this,SLOT(deleteTempFiles()));
     }
     void handleNewPicture(const QString &filePath, const qreal CRF, const PictureHandler::UCIMode mode, const QStringList &otherArgument = QStringList(),const QString& UCINativeArguments = QString()){
@@ -116,4 +116,4 @@ signals:
     void addCommandMessage(const QString message);
 };
 
-#endif // MAGICKHELPER_H
+#endif // PICTUREHELPER_H

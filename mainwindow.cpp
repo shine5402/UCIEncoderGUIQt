@@ -15,8 +15,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(magickhelper->getProcessManager(),SIGNAL(processOutputAvailable(int,QString)),this,SLOT(addCommandOutput(int,QString)));
     ui->statusBar->showMessage(u8"就绪");
     connect(magickhelper,SIGNAL(showStatusMessage(QString)),this,SLOT(showStatusMessage(QString)));
-    setDockSize(ui->dockWidget,600,150);
-    // ui->showAdvancedButton->setVisible(false);
     hideAdvanced();
     QRegExp regx(R"(^[1-9]\d*$)");
     QRegExpValidator* numValidator = new QRegExpValidator(regx,this);
@@ -26,18 +24,23 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->i444wLineEdit->setValidator(numValidator);
 #ifdef Q_OS_WIN64
     this->setWindowTitle(this->windowTitle() + " x64");
-#ifdef TOOLCHAIN_WIN64_WITH_WIN32
-    QComboBox* toolchainBox = new QComboBox(this);
-    QStringList toolchains {"x64","x86"};
-    toolchainBox->addItems(toolchains);
-    toolchainBox->setInsertPolicy(QComboBox::NoInsert);
-    connect(toolchainBox,SIGNAL(currentIndexChanged(QString)),this,SLOT(toolChainBoxChanged(QString)));
-    ui->runButtonLayout->insertWidget(1,toolchainBox);
 #endif
-#endif
-    //updateCRFFromSliderValue(60);
-    //updateCRFQFromSliderValue(60);
-    updateCRFFromCRFValue(27.0);
+if (QSysInfo::currentCpuArchitecture() == "x86_64"){
+    if (QFileInfo("./TOOLCHAIN_WIN64_WITH_WIN32").exists()){
+        LeafLogger::LogMessage(u8"检测到TOOLCHAIN_WIN64_WITH_WIN32文件。");
+        QComboBox* toolchainBox = new QComboBox(this);
+        QStringList toolchains {"x64","x86"};
+        toolchainBox->addItems(toolchains);
+        toolchainBox->setInsertPolicy(QComboBox::NoInsert);
+        connect(toolchainBox,SIGNAL(currentIndexChanged(QString)),this,SLOT(toolChainBoxChanged(QString)));
+        ui->runButtonLayout->insertWidget(1,toolchainBox);}
+    if (QSysInfo::buildCpuArchitecture() == "i386"){
+        MessageBox::information(this,u8"看起来您的系统架构为x86_64，但您运行了i386的UCI Encoder GUI。\n您仍可以使用UCI Encoder GUI的全部功能（甚至可以调用x64工具链）。但我们仍建议您使用x64的UCI Encoder GUI。");
+    }
+}
+
+    updateCRFFromCRFValue(CRF_X264_DEFAULT);
+
 }
 
 MainWindow::~MainWindow()
@@ -58,7 +61,6 @@ void MainWindow::on_clearButton_clicked()
 void MainWindow::on_deleteButton_clicked()
 {
     if (ui->fileListWidget->currentRow() != -1){
-        //        delete ui->fileListWidget->takeItem(ui->fileListWidget->currentRow());
         auto selectedItems = ui->fileListWidget->selectedItems();
         foreach (auto i, selectedItems) {
             ui->fileListWidget->removeItemWidget(i);
@@ -74,8 +76,8 @@ void MainWindow::on_addButton_clicked()
     auto fileNames = QFileDialog::getOpenFileNames(this,QStringLiteral("打开文件"),"",QStringLiteral("所有文件 (*.*)"));
     foreach (auto fileName, fileNames) {
         ui->fileListWidget->addItem(fileName);
+        LeafLogger::LogMessage(QString(u8"通过添加按钮添加了此文件：%1").arg(fileName));
     }
-
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
@@ -90,12 +92,10 @@ void MainWindow::dropEvent(QDropEvent *event)
     auto urls = event->mimeData()->urls();
     if(urls.isEmpty())
         return;
-
     //往文本框中追加文件名
     foreach(auto url, urls) {
-        //QString file_name = url.toLocalFile();
-        //textEdit->append(file_name);
         ui->fileListWidget->addItem(url.toLocalFile());
+        LeafLogger::LogMessage(QString(u8"通过拖拽添加了此文件：%1").arg(url.toLocalFile()));
     }
 }
 
@@ -135,13 +135,13 @@ void MainWindow::on_runButton_clicked()
 void MainWindow::on_x264radioButton_clicked()
 {
     if (ui->x264radioButton->isChecked())
-        updateCRFFromCRFValue(27.0);
+        updateCRFFromCRFValue(CRF_X264_DEFAULT);
 }
 
 void MainWindow::on_x265radioButton_clicked()
 {
     if (ui->x265radioButton->isChecked())
-        updateCRFFromCRFValue(42.0);
+        updateCRFFromCRFValue(CRF_X265_DEFAULT);
 }
 
 void MainWindow::refreshUIProgress(int progressValue)
@@ -253,7 +253,7 @@ void MainWindow::on_dockWidget_visibilityChanged(bool visible)
 {
     if (visible){
         ui->actionCommandOutput->setChecked(true);
-        setDockSize(ui->dockWidget,600,150);
+        //setDockSize(ui->dockWidget,600,150);
     }
     else
         ui->actionCommandOutput->setChecked(false);
@@ -262,31 +262,6 @@ void MainWindow::on_dockWidget_visibilityChanged(bool visible)
 void MainWindow::on_actionAboutQt_triggered()
 {
     QMessageBox::aboutQt(this,u8"关于Qt");
-}
-QSize oldMaxSize, oldMinSize;
-
-void MainWindow::setDockSize(QDockWidget* dock, int setWidth,int setHeight)
-{
-
-    oldMaxSize=dock->maximumSize();
-    oldMinSize=dock->minimumSize();
-
-    if (setWidth>=0)
-        if (dock->width()<setWidth)
-            dock->setMinimumWidth(setWidth);
-        else dock->setMaximumWidth(setWidth);
-    if (setHeight>=0)
-        if (dock->height()<setHeight)
-            dock->setMinimumHeight(setHeight);
-        else dock->setMaximumHeight(setHeight);
-
-    QTimer::singleShot(1, this, SLOT(returnToOldMaxMinSizes()));
-}
-
-void MainWindow::returnToOldMaxMinSizes()
-{
-    ui->dockWidget->setMinimumSize(oldMinSize);
-    ui->dockWidget->setMaximumSize(oldMaxSize);
 }
 
 void MainWindow::on_commandOuptutBrowser_textChanged()
@@ -298,16 +273,9 @@ void MainWindow::on_actionAbout_triggered()
 {
     auto version = QString("%1").arg(VERSION_STRING);
 #ifdef Q_OS_WIN64
-#ifdef TOOLCHAIN_WIN64_WITH_WIN32
-    version.append(u8" x64 (同时包含x86工具链)");
-#else
     version.append(u8" x64");
-#endif
 #elif defined(Q_OS_WIN32)
     version.append(u8" x86");
-#endif
-#ifdef TOOLCHAIN_IMAGEMAGICK_CONVERT_MIN
-    version.append(u8" (ImageMagick只包含convert组件)");
 #endif
     auto showString = QString(u8"<h3>关于 UCI Encoder GUI</h3>"
                               u8"<p>版本：%1 </p><p>编译时间：%2 %3</p>"
@@ -506,33 +474,89 @@ void MainWindow::toolChainBoxChanged(const QString &text)
     isToolchain_x64 = (text == "x64");
 }
 #endif
+double MainWindow::calculateCRFFromPercent(int value,int percent_max){
+    if (ui->x264radioButton->isChecked())
+    {
+        double value_d = value;
+        if (value_d >=CRF_SLIDER_USEFULRANGE_MIN && value_d <=CRF_SLIDER_USEFULRANGE_MAX)
+        {
+            value_d = 0 + percent_max * (value_d - CRF_SLIDER_USEFULRANGE_MIN)/(CRF_SLIDER_USEFULRANGE_MAX-CRF_SLIDER_USEFULRANGE_MIN);
+            return (CRF_X264_USEFULRANGE_MAX - CRF_X264_USEFULRANGE_MIN)*(1 - value_d/percent_max) + CRF_X264_USEFULRANGE_MIN;
+        }
+        else if (value_d < CRF_SLIDER_USEFULRANGE_MIN)
+        {
+            return CRF_MAX - value_d/(CRF_SLIDER_USEFULRANGE_MIN) * (CRF_MAX - CRF_X264_USEFULRANGE_MAX);
+        }
+        else {
+            return (percent_max - value_d) / percent_max * (percent_max - CRF_SLIDER_USEFULRANGE_MAX) * (CRF_X264_USEFULRANGE_MIN - CRF_MIN) + CRF_MIN;
+        }
+    }
+    else
+    {
+        double value_d = value;
+        if (value_d >=CRF_SLIDER_USEFULRANGE_MIN && value_d <=CRF_SLIDER_USEFULRANGE_MAX)
+        {
+            value_d = 0 + percent_max * (value_d - CRF_SLIDER_USEFULRANGE_MIN)/(CRF_SLIDER_USEFULRANGE_MAX-CRF_SLIDER_USEFULRANGE_MIN);
+            return (CRF_X265_USEFULRANGE_MAX - CRF_X265_USEFULRANGE_MIN)*(1 - value_d/percent_max) + CRF_X265_USEFULRANGE_MIN;
+        }
+        else if (value_d < CRF_SLIDER_USEFULRANGE_MIN)
+        {
+            return CRF_MAX - value_d/(CRF_SLIDER_USEFULRANGE_MIN) * (CRF_MAX - CRF_X265_USEFULRANGE_MAX);
+        }
+        else {
+            return (percent_max - value_d) / percent_max * (percent_max - CRF_SLIDER_USEFULRANGE_MAX) * (CRF_X265_USEFULRANGE_MIN - CRF_MIN) + CRF_MIN;
+        }
+    }
+}
+
+int MainWindow::calculatePercentFromCRF(double CRF,int max){
+    if (ui->x264radioButton->isChecked()){
+        if (CRF >= CRF_X264_USEFULRANGE_MIN && CRF <= CRF_X264_USEFULRANGE_MAX){
+            return static_cast<int>((CRF_X264_USEFULRANGE_MAX - CRF)/(CRF_X264_USEFULRANGE_MAX-CRF_X264_USEFULRANGE_MIN)*(CRF_SLIDER_USEFULRANGE_MAX - CRF_SLIDER_USEFULRANGE_MIN) + CRF_SLIDER_USEFULRANGE_MIN);
+        }
+        else if (CRF <= CRF_X264_USEFULRANGE_MIN){
+            return static_cast<int>(max - (max - CRF_SLIDER_USEFULRANGE_MAX) * (CRF / (CRF_X264_USEFULRANGE_MIN - CRF_MIN)));
+        }
+        else {
+            return static_cast<int>(CRF_SLIDER_USEFULRANGE_MIN - (CRF - CRF_X264_USEFULRANGE_MAX) / (CRF_MAX - CRF_X264_USEFULRANGE_MAX) * (CRF_SLIDER_USEFULRANGE_MIN - 0));
+        }
+    }
+    else
+    {
+        if (CRF >= CRF_X265_USEFULRANGE_MIN && CRF <= CRF_X265_USEFULRANGE_MAX){
+            return static_cast<int>((CRF_X265_USEFULRANGE_MAX - CRF)/(CRF_X265_USEFULRANGE_MAX-CRF_X265_USEFULRANGE_MIN)*(CRF_SLIDER_USEFULRANGE_MAX - CRF_SLIDER_USEFULRANGE_MIN) + CRF_SLIDER_USEFULRANGE_MIN);
+        }
+        else if (CRF <= CRF_X265_USEFULRANGE_MIN){
+            return static_cast<int>(max - (max - CRF_SLIDER_USEFULRANGE_MAX) * (CRF / (CRF_X265_USEFULRANGE_MIN - CRF_MIN)));
+        }
+        else {
+            return static_cast<int>(CRF_SLIDER_USEFULRANGE_MIN - (CRF - CRF_X265_USEFULRANGE_MAX) / (CRF_MAX - CRF_X265_USEFULRANGE_MAX) * (CRF_SLIDER_USEFULRANGE_MIN - 0));
+        }
+    }
+}
 
 void MainWindow::updateCRFFromSliderValue(int value)
 {
-    double value_d = value;
-    CRF = (CRF_MAX - CRF_MIN)*(1 - value_d/ui->CRFhorizontalSlider->maximum()) + CRF_MIN;
-    //qDebug() << CRF;
-    //qDebug() << value_d/ui->CRFhorizontalSlider->maximum();
+    CRF = calculateCRFFromPercent(value,ui->CRFhorizontalSlider->maximum());
     ui->CRFLabel->setText(QString(u8"%1% (CRF:%2)").arg(value).arg(CRF));
 }
 void MainWindow::updateCRFQFromSliderValue(int value)
 {
-    double value_d = value;
-    CRF_Q = (CRF_MAX - CRF_MIN)*(1 - value_d/ui->CRFhorizontalSlider_Q->maximum()) + CRF_MIN;
-    //qDebug() << CRF;
-    //qDebug() << value_d/ui->CRFhorizontalSlider->maximum();
+    CRF_Q = calculateCRFFromPercent(value,ui->CRFhorizontalSlider_Q->maximum());
     ui->CRFLabel_Q->setText(QString(u8"%1% (CRF:%2)").arg(value).arg(CRF_Q));
 }
+
 void MainWindow::updateCRFFromCRFValue(double CRF)
 {
     this->CRF = CRF;
-    ui->CRFhorizontalSlider->setValue(static_cast<int>(ui->CRFhorizontalSlider->maximum() - (CRF-CRF_MIN)/(CRF_MAX-CRF_MIN)*ui->CRFhorizontalSlider->maximum()));
+    //    ui->CRFhorizontalSlider->setValue(static_cast<int>(ui->CRFhorizontalSlider->maximum() - (CRF-CRF_MIN)/(CRF_MAX-CRF_MIN)*ui->CRFhorizontalSlider->maximum()));
+    ui->CRFhorizontalSlider->setValue(calculatePercentFromCRF(CRF,ui->CRFhorizontalSlider->maximum()));
     ui->CRFLabel->setText(QString(u8"%1% (CRF:%2)").arg(ui->CRFhorizontalSlider->value()).arg(CRF));
 }
 void MainWindow::updateCRFQFromCRFValue(double CRF_Q)
 {
     this->CRF_Q = CRF_Q;
-    ui->CRFhorizontalSlider_Q->setValue(static_cast<int>(ui->CRFhorizontalSlider_Q->maximum() - (CRF_Q-CRF_MIN)/(CRF_MAX-CRF_MIN)*ui->CRFhorizontalSlider_Q->maximum()));
+    ui->CRFhorizontalSlider_Q->setValue(calculatePercentFromCRF(CRF_Q,ui->CRFhorizontalSlider_Q->maximum()));
     ui->CRFLabel->setText(QString(u8"%1% (CRF:%2)").arg(ui->CRFhorizontalSlider_Q->value()).arg(CRF_Q));
 }
 
@@ -555,7 +579,7 @@ void MainWindow::on_CRFLabel_doubleClicked()
 {
     bool ok = false;
     auto newCRF = QInputDialog::getDouble(this,u8"输入一个CRF值",u8"输入一个CRF值。范围为0.0~51.0。",CRF,CRF_MIN,CRF_MAX,2,&ok);
-    if (&ok)
+    if (ok)
         updateCRFFromCRFValue(newCRF);
 }
 
@@ -563,6 +587,6 @@ void MainWindow::on_CRFLabel_Q_doubleClicked()
 {
     bool ok = false;
     auto newCRF = QInputDialog::getDouble(this,u8"输入一个CRF值",u8"输入一个CRF值。范围为0.0~51.0。",CRF_Q,CRF_MIN,CRF_MAX,2,&ok);
-    if (&ok)
+    if (ok)
         updateCRFQFromCRFValue(newCRF);
 }

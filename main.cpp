@@ -1,22 +1,21 @@
 ﻿#include "mainwindow.h"
 #include <QApplication>
-#include <QDateTime>
-#include <stdio.h>
-  #include <stdlib.h>
 
 int main(int argc, char *argv[])
 {
 
     QApplication a(argc, argv);
-    QDateTime current_date_time =QDateTime::currentDateTime();
-    QDir* dir = new QDir;
-    if (!dir->exists("./log")){
-        dir->mkdir("log");
-    }
-    delete dir;
-    LeafLogger::setFilePath(QString("./log/log%1.txt").arg(current_date_time.toString("yyyyMMddhhmmsszzz")));
+    LeafLogger::LogInit();
     MainWindow w;
     w.show();
-
-    return a.exec();
+    try
+    {
+        return a.exec();
+    }
+    catch(std::exception& e){
+        LeafLogger::LogMessage(QString(u8"程序运行过程中出现没有被处理的异常。异常信息为%1。程序被迫退出。").arg(e.what()));
+    }
+    catch(...){
+        LeafLogger::LogMessage(QString(u8"程序运行中出现了一个非exception的异常。程序被迫退出。"));
+    }
 }

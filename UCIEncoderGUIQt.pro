@@ -27,20 +27,20 @@ RC_ICONS += icon.ico
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    magickhelper.cpp \
     public_variable.cpp \
     ../LeafPublicQtClasses/leaflogger.cpp \
     ../LeafPublicQtClasses/processmanager.cpp \
-    qlabel_doubleclick.cpp
+    qlabel_doubleclick.cpp \
+    picturehelper.cpp
 
 HEADERS += \
         mainwindow.h \
-    magickhelper.h \
     publicdefines.h \
     public_variable.h \
     ../LeafPublicQtClasses/leaflogger.h \
     ../LeafPublicQtClasses/processmanager.h \
-    qlabel_doubleclick.h
+    qlabel_doubleclick.h \
+    picturehelper.h
 
 FORMS += \
         mainwindow.ui
@@ -49,3 +49,6 @@ CONFIG += c++1z
 win32-msvc{
 QMAKE_CXXFLAGS += /std:c++17
 }
+
+RESOURCES += \
+    uciencoderguiqt.qrc

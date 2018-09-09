@@ -17,8 +17,8 @@
    <string>UCI Encoder GUI Qt</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>icon.ico</normaloff>icon.ico</iconset>
+   <iconset resource="uciencoderguiqt.qrc">
+    <normaloff>:/icon/icon.ico</normaloff>:/icon/icon.ico</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="enabled">
@@ -132,7 +132,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QWidget" name="" native="true">
+        <widget class="QWidget" name="widget" native="true">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;此参数用于告知UCI Encoder应调用何种编码器进行编码。&lt;/p&gt;&lt;p&gt;如果您选择了AVC选项，UCI Encoder将调用同目录下的x264.exe，选择HEVC选项（-hevc）则会调用x265.exe。&lt;/p&gt;&lt;p&gt;注意，默认调用的程序名称可由“自定义调用的x264/5二进制文件名”（-p）参数重新指定，但是您&lt;span style=&quot; font-weight:600;&quot;&gt;仍应当&lt;/span&gt;选择正确的编码，因为x264和x265编码时调用的参数是不同的，UCI Encoder必须知道您指定了何种编码的编码器才可以正常工作。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
@@ -196,7 +196,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="" native="true">
+        <widget class="QWidget" name="widget" native="true">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;该参数对应UCI Encoder的-q参数。&lt;/p&gt;&lt;p&gt;此参数用于设定RGB/YUV通道的图像质量。范围为0.0~51.0。越小质量越高。&lt;/p&gt;&lt;p&gt;在未修改的情况下，Alpha通道的质量与此参数相同。&lt;/p&gt;&lt;p&gt;在技术细节上，此参数将成为x264/x265的CRF参数。&lt;/p&gt;&lt;p&gt;注意，质量比例在最终效果显示上未必准确，请在尝试后找出最适当的CRF参数。&lt;/p&gt;&lt;p&gt;对高级用户，您可以通过双击滑条上方的文本输入一个新的CRF值。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
@@ -316,7 +316,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QWidget" name="" native="true">
+           <widget class="QWidget" name="widget" native="true">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;该参数对应了UCI Encoder的-Q参数。&lt;/p&gt;&lt;p&gt;此参数用于单独指定生成的UCI文件的Alpha通道的质量。若不指定，则于“质量（CRF）”（-q）参数相同。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
@@ -425,7 +425,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QWidget" name="" native="true">
+           <widget class="QWidget" name="widget" native="true">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;该参数对应了UCI Encoder的-x参数。&lt;/p&gt;&lt;p&gt;此参数用于告知UCI Encoder不使用内置压制参数，而是用用户提供的参数替代。&lt;/p&gt;&lt;p&gt;此参数影响RGB/YUV通道，Alpha通道默认与此参数相同。&lt;/p&gt;&lt;p&gt;您应当只有在知道自己在做什么的前提下修改此参数，并且即使您是个专业用户，也应当&lt;span style=&quot; font-weight:600;&quot;&gt;万分小心&lt;/span&gt;。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
@@ -479,7 +479,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QWidget" name="" native="true">
+           <widget class="QWidget" name="widget" native="true">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;该参数对应了UCI Encoder的-X参数。&lt;/p&gt;&lt;p&gt;此参数用于告知UCI Encoder不使用内置压制参数，而是用用户提供的参数替代。&lt;/p&gt;&lt;p&gt;此参数只影响Alpha通道，并且默认与-x相同。&lt;/p&gt;&lt;p&gt;您应当只有在知道自己在做什么的前提下修改此参数，并且即使您是个专业用户，也应当&lt;span style=&quot; font-weight:600;&quot;&gt;万分小心&lt;/span&gt;。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
@@ -533,7 +533,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QWidget" name="" native="true">
+           <widget class="QWidget" name="widget" native="true">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;该参数对应了UCI Encoder的-p参数。&lt;/p&gt;&lt;p&gt;此参数用于更改UCI Encoder调用的编码器程序名称。&lt;/p&gt;&lt;p&gt;默认情况下，UCI Encoder根据用户提供的编码来调用相应的编码器。默认的AVC编码器为同目录下的x264.exe，HEVC编码器为x265.exe。您可以通过本参数来修改这一行为，但请注意，由于x264与x265所对应的参数不同，您应当在修改此项后重新检查您的编码器是否与您在“编码”参数所选的编码对应。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
@@ -1033,6 +1033,8 @@ p, li { white-space: pre-wrap; }
    </slots>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="uciencoderguiqt.qrc"/>
+ </resources>
  <connections/>
 </ui>

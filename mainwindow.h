@@ -13,7 +13,7 @@
 #include <QDebug>
 #include <QTextCodec>
 #include <QProcess>
-#include "magickhelper.h"
+#include "picturehelper.h"
 #include <QProgressBar>
 #include <QTextCursor>
 #include <QTextBrowser>
@@ -25,22 +25,33 @@
 #include <QInputDialog>
 #include <QComboBox>
 #include "qlabel_doubleclick.h"
+#include <QFileInfo>
+#include <QSysInfo>
 namespace Ui {
     class MainWindow;
 }
 constexpr double CRF_MAX = 51;
 constexpr double CRF_MIN = 0;
-//constexpr double CRF_DEFALUT_QUALITY = 0.6;
-//constexpr int CRF_SLIDER_DEFAULT_VALUE = 60;
+constexpr double CRF_X264_USEFULRANGE_MIN=15;
+constexpr double CRF_X264_USEFULRANGE_MAX=28;
+constexpr double CRF_X264_TO_X265_USEFULRANGE_NUM=14.5;
+constexpr double CRF_X265_USEFULRANGE_MIN=CRF_X264_USEFULRANGE_MIN + CRF_X264_TO_X265_USEFULRANGE_NUM;
+constexpr double CRF_X265_USEFULRANGE_MAX=CRF_X264_USEFULRANGE_MAX + CRF_X264_TO_X265_USEFULRANGE_NUM;
+constexpr double CRF_SLIDER_USEFULRANGE_MIN=60;
+constexpr double CRF_SLIDER_USEFULRANGE_MAX=90;
+constexpr double CRF_X264_DEFAULT = 27.0;
+constexpr double CRF_X265_DEFAULT = 42.0;
+
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow() override;
 
+    int calculatePercentFromCRF(double CRF, int max);
 public slots:
     void refreshUIProgress(int progressValue);
     void startUIProgress(int progressMin,int progressMax);
@@ -71,8 +82,6 @@ private slots:
     void on_dockWidget_visibilityChanged(bool visible);
 
     void on_actionAboutQt_triggered();
-
-    void returnToOldMaxMinSizes();
 
     void on_commandOuptutBrowser_textChanged();
 
@@ -115,7 +124,7 @@ private:
     void dropEvent(QDropEvent *event) override;
     QStringList getFilePaths();
 
-    MagickHelper *magickhelper = new MagickHelper(this);
+    PictureHelper *magickhelper = new PictureHelper(this);
     struct exceptions
     {
         exceptions() {}
@@ -143,6 +152,7 @@ private:
     void updateCRFQFromSliderValue(int value);
     void updateCRFFromCRFValue(double CRF);
     void updateCRFQFromCRFValue(double CRF_Q);
+    double calculateCRFFromPercent(int value, int precent_max);
 };
 
 namespace MessageBox{
